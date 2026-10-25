@@ -1,5 +1,5 @@
 {
-  "name" : "Sustainable Work Lab",
+  "name" : "sustainable-work-lab",
   "version" : "1.0.0",
   "description" : "Appwrite database setup for the Sustainable Work Lab website",
   "private" : true,
