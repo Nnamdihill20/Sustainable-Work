@@ -47,10 +47,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			.then(function (response) { return response.json(); })
 			.then(function (fetchedData) {
 				data = fetchedData.map(function (row) {
-					return {
+					var sourceDate = row.date || row.year || "";
+					var entry = {
 						title: row.title || "",
 						authors: row.authors || row.author || "",
-						date: formatPublicationDate(row.date || row.year || ""),
+						date: formatPublicationDate(sourceDate),
 						abstract: row.abstract || row.description || "",
 						tags: row.tags || row.topic ? (row.tags || row.topic).split(',').map(function(t){ return t.trim(); }).filter(Boolean) : [],
 						keywords: row.keywords ? row.keywords.split(',').map(function(k){ return k.trim(); }).filter(Boolean) : [],
@@ -59,6 +60,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 						sample: row.sample === true || row.sample === "true" || row.sample === "Sample entry",
 						sheet_row_index: row.sheet_row_index
 					};
+					entry.searchText = haystack(entry);
+					entry.sortTime = time({ date: sourceDate });
+					return entry;
 				});
 				buildTopicOptions();
 				checkInitialUrlParams();
@@ -154,6 +158,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	}
 
 	function time(p) {
+		if (typeof p.sortTime === 'number') return p.sortTime;
 		var dStr = p.date || "";
 		var t = Date.parse(dStr);
 		return isNaN(t) ? 0 : t;
@@ -242,6 +247,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 						removeX.addEventListener('click', function(ev) {
 							ev.stopPropagation();
 							p.tags = p.tags.filter(function(tag) { return tag !== t; });
+							p.searchText = haystack(p);
 							renderTagsSection();
 						});
 						a.appendChild(removeX);
@@ -289,6 +295,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 					var selectedVal = selectNewTag.value;
 					if (selectedVal && (p.tags || []).indexOf(selectedVal) === -1) {
 						p.tags.push(selectedVal);
+						p.searchText = haystack(p);
 						renderTagsSection();
 					}
 				});
@@ -452,10 +459,14 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 		var words = qEl.value.toLowerCase().split(/\s+/).filter(Boolean);
 		var topic = topicEl.value;
 		
-		// Create a deep copy of dataset for sorting so that empty row dates don't corrupt live rows
-		var sortedData = data.slice();
+		var out = data.filter(function (p) {
+			if (topic && (p.tags || []).indexOf(topic) === -1) { return false; }
+			var h = p.searchText;
+			return words.every(function (w) { return h.indexOf(w) !== -1; });
+		});
+
 		var how = sortEl.value;
-		sortedData.sort(function (a, b) {
+		out.sort(function (a, b) {
 			if (how === 'title') { return (a.title || "").localeCompare(b.title || ""); }
 			
 			var timeA = time(a);
@@ -467,12 +478,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 
 			if (how === 'oldest') { return timeA - timeB; }
 			return timeB - timeA;
-		});
-
-		var out = sortedData.filter(function (p) {
-			if (topic && (p.tags || []).indexOf(topic) === -1) { return false; }
-			var h = haystack(p);
-			return words.every(function (w) { return h.indexOf(w) !== -1; });
 		});
 		
 		list.textContent = '';
