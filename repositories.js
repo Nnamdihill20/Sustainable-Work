@@ -1,9 +1,8 @@
-// Paste your new Google Apps Script Web App Deployment URL here
-const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOPZ7DiApEI1p3N3penQ-0Hyok2iR57npGuzzrZ4JkDHbWIPQ/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4FmBcJm5cBVUEwJw39VTdoBJmnZ-CgauR1T48uC4wPdZ5kiA/exec";
 
 (function () {
-	var data = []; // Dynamically populated from Google Sheets
-	var isEditModeActive = false; // Tracks global edit mode status
+	var data = [];
+	var isEditModeActive = false;
 
 	var form = document.getElementById('repo-form');
 	var qEl = document.getElementById('q');
@@ -23,30 +22,15 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 		return e;
 	}
 
-	// 1. DATE CLEANER ENGINE: Translates ugly raw ISO strings to beautiful dates
 	function formatPublicationDate(dateStr) {
 		if (!dateStr) return "";
-		
-		// If it's a standard text string already (like "March 2026"), leave it completely alone
 		if (isNaN(Date.parse(dateStr)) || !/^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
 			return dateStr;
 		}
-
-		var months = [
-			"January", "February", "March", "April", "May", "June",
-			"July", "August", "September", "October", "November", "December"
-		];
-		
+		var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 		var parsedDate = new Date(dateStr);
-		// Adjust for local time offset shifts caused by timezone calculations
-		var userTimezoneOffset = parsedDate.getTimezoneOffset() * 60000;
-		var localizedDate = new Date(parsedDate.getTime() + userTimezoneOffset);
-
-		var year = localizedDate.getFullYear();
-		var month = months[localizedDate.getMonth()];
+		var localizedDate = new Date(parsedDate.getTime() + parsedDate.getTimezoneOffset() * 60000);
 		var day = localizedDate.getDate();
-
-		// Compute ordinal numeric day suffix flags (1st, 2nd, 3rd, 4th)
 		var suffix = "th";
 		if (day < 11 || day > 13) {
 			switch (day % 10) {
@@ -55,11 +39,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 				case 3: suffix = "rd"; break;
 			}
 		}
-
-		return month + " " + day + suffix + " " + year;
+		return months[localizedDate.getMonth()] + " " + day + suffix + ", " + localizedDate.getFullYear();
 	}
 
 	function fetchRepositoryData() {
+		// Uses standard redirect handling natively for clean CORS resolution
 		fetch(API_URL)
 			.then(function (response) { return response.json(); })
 			.then(function (fetchedData) {
@@ -67,110 +51,37 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 					return {
 						title: row.title || "",
 						authors: row.authors || row.author || "",
-						// Run the raw text string into the date format filter cleanly
 						date: formatPublicationDate(row.date || row.year || ""),
 						abstract: row.abstract || row.description || "",
 						tags: row.tags || row.topic ? (row.tags || row.topic).split(',').map(function(t){ return t.trim(); }).filter(Boolean) : [],
-						tagField: row.tags ? 'tags' : (row.topic ? 'topic' : 'tags'),
 						keywords: row.keywords ? row.keywords.split(',').map(function(k){ return k.trim(); }).filter(Boolean) : [],
 						url: row.url || "",
 						pdf: row.pdf || "",
-						sample: row.sample === true || row.sample === "true" || row.sample === "Sample entry",
+						rawSortDate: row.date || row.year || "",
 						sheet_row_index: row.sheet_row_index
 					};
 				});
-
 				buildTopicOptions();
 				checkInitialUrlParams();
 				render();
 			})
 			.catch(function (err) {
 				list.textContent = '';
-				list.appendChild(el('li', '', 'Failed to sync with repository database stream.'));
+				list.appendChild(el('li', '', 'Failed to sync with repository database stream. Verification of API Deployment configuration required.'));
 			});
 	}
 
 	function buildTopicOptions() {
+		var currentSelection = topicEl.value;
 		var seen = {};
 		data.forEach(function (p) { (p.tags || []).forEach(function (t) { seen[t] = true; }); });
-		
 		topicEl.innerHTML = '<option value="">All topics</option>';
 		Object.keys(seen).sort().forEach(function (t) {
 			var o = el('option', '', t);
 			o.value = t;
 			topicEl.appendChild(o);
 		});
-	}
-
-	function availableTags() {
-		var seen = {};
-		data.forEach(function (p) { (p.tags || []).forEach(function (tag) { seen[tag] = true; }); });
-		return Object.keys(seen).sort();
-	}
-
-	function renderTags(p, listElement) {
-		listElement.textContent = '';
-		(p.tags || []).forEach(function (tag) {
-			var item = el('li');
-			var link = el('a', '', tag);
-			link.href = '?topic=' + encodeURIComponent(tag);
-			link.addEventListener('click', function (ev) {
-				ev.preventDefault();
-				topicEl.value = tag;
-				setPanel(true);
-				render();
-			});
-			item.appendChild(link);
-
-			if (isEditModeActive) {
-				var removeButton = el('button', 'tag-remove', '×');
-				removeButton.type = 'button';
-				removeButton.setAttribute('aria-label', 'Remove tag ' + tag);
-				removeButton.addEventListener('click', function () {
-					p.tags = p.tags.filter(function (currentTag) { return currentTag !== tag; });
-					renderTags(p, listElement);
-				});
-				item.appendChild(removeButton);
-			}
-			listElement.appendChild(item);
-		});
-
-		if (isEditModeActive) {
-			var addItem = el('li');
-			var addButton = el('button', 'tag-add', '+');
-			addButton.type = 'button';
-			addButton.setAttribute('aria-label', 'Add a tag');
-			addButton.addEventListener('click', function () {
-				var select = el('select', 'tag-add-select');
-				select.setAttribute('aria-label', 'Choose a tag to add');
-				var placeholder = el('option', '', 'Choose a tag');
-				placeholder.value = '';
-				select.appendChild(placeholder);
-				availableTags().filter(function (tag) {
-					return (p.tags || []).indexOf(tag) === -1;
-				}).forEach(function (tag) {
-					var option = el('option', '', tag);
-					option.value = tag;
-					select.appendChild(option);
-				});
-
-				if (select.options.length === 1) {
-					placeholder.textContent = 'No tags available';
-					placeholder.disabled = true;
-				}
-
-				select.addEventListener('change', function () {
-					if (select.value && (p.tags || []).indexOf(select.value) === -1) {
-						p.tags.push(select.value);
-						renderTags(p, listElement);
-					}
-				});
-				addItem.replaceChild(select, addButton);
-				select.focus();
-			});
-			addItem.appendChild(addButton);
-			listElement.appendChild(addItem);
-		}
+		topicEl.value = currentSelection;
 	}
 
 	function checkInitialUrlParams() {
@@ -179,16 +90,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 		if (params.get('topic')) {
 			topicEl.value = params.get('topic');
 			setPanel(true);
-			render();
 		}
 	}
 
 	function injectEditToggleButton() {
 		var resultLine = document.querySelector('.result-line');
-		if (!resultLine) return;
-
-		// Prevent double injection if function runs multiple times
-		if (document.getElementById('global-edit-toggle')) return;
+		if (!resultLine || document.getElementById('global-edit-toggle')) return;
 
 		var toggleBtn = el('button', 'btn btn-light', 'Edit Mode: OFF');
 		toggleBtn.id = 'global-edit-toggle';
@@ -208,8 +115,24 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 			}
 			render();
 		});
-
 		resultLine.appendChild(toggleBtn);
+	}
+
+	function createNewRepositoryEntry() {
+		var addCardBtn = document.getElementById('add-entry-title-text');
+		if (addCardBtn) addCardBtn.textContent = "Creating New Blank Entry...";
+
+		fetch(API_URL, {
+			method: "POST",
+			mode: "no-cors",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "create" })
+		})
+		.then(function() {
+			setTimeout(function() {
+				fetchRepositoryData();
+			}, 1500);
+		});
 	}
 
 	function setPanel(open) {
@@ -222,18 +145,19 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 	}
 
 	function time(p) {
-		var t = Date.parse(p.date);
+		if (!p.rawSortDate) {
+			return isEditModeActive ? Date.now() : 0;
+		}
+		var t = Date.parse(p.rawSortDate);
 		return isNaN(t) ? 0 : t;
 	}
 
 	function card(p) {
 		var li = el('li', 'paper');
-		li._entry = p;
-		
 		var editableAttr = isEditModeActive ? 'true' : 'false';
 		var editStyle = isEditModeActive ? 'background-color: #fffde7; padding: 2px 4px; border-radius: 4px; outline: none;' : '';
 
-		// Title (h2)
+		// Title
 		var h2 = el('h2', '');
 		h2.textContent = p.title;
 		h2.setAttribute('contenteditable', editableAttr);
@@ -241,19 +165,18 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 		h2.dataset.key = 'title';
 		li.appendChild(h2);
 
-		// Metadata Row
+		// Meta Row
 		var metaText = [p.authors, p.date].filter(Boolean).join(' · ');
 		if (metaText || isEditModeActive) {
 			var pMeta = el('p', 'paper-meta');
-			
 			var spanAuthors = el('span', '');
 			spanAuthors.textContent = p.authors || (isEditModeActive ? 'Author name(s)' : '');
 			spanAuthors.setAttribute('contenteditable', editableAttr);
 			spanAuthors.setAttribute('style', editStyle);
 			spanAuthors.dataset.key = 'authors';
-			
+
 			var divider = document.createTextNode(' · ');
-			
+
 			var spanDate = el('span', '');
 			spanDate.textContent = p.date || (isEditModeActive ? 'Date' : '');
 			spanDate.setAttribute('contenteditable', editableAttr);
@@ -276,69 +199,139 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 			li.appendChild(pAbstract);
 		}
 
-		// Tags (Chips)
-		if ((p.tags && p.tags.length) || isEditModeActive) {
-			var ul = el('ul', 'chips repo-tags');
-			renderTags(p, ul);
+		// Chips Display
+		if (!isEditModeActive && p.tags && p.tags.length) {
+			var ul = el('ul', 'chips');
+			p.tags.forEach(function (t) {
+				var item = el('li');
+				var a = el('a', '', t);
+				a.href = '?topic=' + encodeURIComponent(t);
+				a.addEventListener('click', function (ev) {
+					ev.preventDefault();
+					topicEl.value = t;
+					setPanel(true);
+					render();
+				});
+				item.appendChild(a);
+				ul.appendChild(item);
+			});
 			li.appendChild(ul);
 		}
 
-		// Action Links Row
-		var links = el('p', 'paper-links');
-		if (p.pdf) {
-			var d = el('a', '', 'Download PDF');
-			d.href = p.pdf;
-			links.appendChild(d);
-		}
+		// Interactive Tags / Topics Editor
 		if (isEditModeActive) {
-			var urlLabel = el('label', 'repo-url-label', 'Read online URL');
-			var urlInput = el('input', 'repo-url-input');
-			urlInput.type = 'url';
-			urlInput.value = p.url;
-			urlInput.placeholder = 'https://';
-			urlInput.setAttribute('aria-label', 'Read online URL');
-			urlInput.dataset.key = 'url';
-			urlLabel.appendChild(urlInput);
-			links.appendChild(urlLabel);
-		} else if (p.url) {
-			var r = el('a', '', 'Read online');
-			r.href = p.url;
-			r.target = '_blank';
-			r.rel = 'noopener';
-			links.appendChild(r);
+			var tWrapper = el('p', 'paper-abstract');
+			tWrapper.style.fontSize = '0.85em';
+			tWrapper.style.color = '#555';
+			tWrapper.style.marginTop = '10px';
+			tWrapper.innerHTML = '<strong>Topics / Tags (comma-separated):</strong> ';
+
+			var tSpan = el('span', '');
+			tSpan.textContent = p.tags.join(', ');
+			tSpan.setAttribute('contenteditable', 'true');
+			tSpan.setAttribute('style', editStyle + ' display: inline-block; width: 75%;');
+			tSpan.dataset.key = 'tags';
+
+			tWrapper.appendChild(tSpan);
+			li.appendChild(tWrapper);
 		}
-		
+
+		// Inline Keywords Editor
+		if (isEditModeActive) {
+			var kWrapper = el('p', 'paper-abstract');
+			kWrapper.style.fontSize = '0.85em';
+			kWrapper.style.color = '#555';
+			kWrapper.style.marginTop = '5px';
+			kWrapper.innerHTML = '<strong>Keywords (comma-separated):</strong> ';
+
+			var kSpan = el('span', '');
+			kSpan.textContent = p.keywords.join(', ');
+			kSpan.setAttribute('contenteditable', 'true');
+			kSpan.setAttribute('style', editStyle + ' display: inline-block; width: 75%;');
+			kSpan.dataset.key = 'keywords';
+
+			kWrapper.appendChild(kSpan);
+			li.appendChild(kWrapper);
+		}
+
+		// Url Field Editor Panel
+		if (isEditModeActive) {
+			var urlWrapper = el('div', '');
+			urlWrapper.style.fontSize = '0.85em';
+			urlWrapper.style.color = '#555';
+			urlWrapper.style.marginTop = '10px';
+			urlWrapper.style.padding = '5px 0';
+			urlWrapper.style.borderTop = '1px dashed #ddd';
+
+			var urlPara = el('p', 'paper-abstract');
+			urlPara.style.margin = '5px 0';
+			urlPara.innerHTML = '<strong>Read Online URL:</strong> ';
+			var urlSpan = el('span', '');
+			urlSpan.textContent = p.url;
+			urlSpan.setAttribute('contenteditable', 'true');
+			urlSpan.setAttribute('style', editStyle + ' display: inline-block; width: 75%; word-break: break-all;');
+			urlSpan.dataset.key = 'url';
+			urlPara.appendChild(urlSpan);
+			urlWrapper.appendChild(urlPara);
+
+			var pdfPara = el('p', 'paper-abstract');
+			pdfPara.style.margin = '5px 0';
+			pdfPara.innerHTML = '<strong>Download PDF URL:</strong> ';
+			var pdfSpan = el('span', '');
+			pdfSpan.textContent = p.pdf;
+			pdfSpan.setAttribute('contenteditable', 'true');
+			pdfSpan.setAttribute('style', editStyle + ' display: inline-block; width: 75%; word-break: break-all;');
+			pdfSpan.dataset.key = 'pdf';
+			pdfPara.appendChild(pdfSpan);
+			urlWrapper.appendChild(pdfPara);
+
+			li.appendChild(urlWrapper);
+		}
+
+		// Resource Action links
+		var links = el('p', 'paper-links');
+		if (!isEditModeActive) {
+			if (p.pdf) {
+				var d = el('a', '', 'Download PDF');
+				d.href = p.pdf;
+				links.appendChild(d);
+			}
+			if (p.url) {
+				var r = el('a', '', 'Read online');
+				r.href = p.url;
+				r.target = '_blank';
+				r.rel = 'noopener';
+				links.appendChild(r);
+			}
+		}
+
+		// Interactive Control Buttons
 		if (isEditModeActive) {
 			var saveBtn = el('button', 'btn', 'Save Changes');
-			saveBtn.style.backgroundColor = '#007bff';
-			saveBtn.style.color = '#fff';
-			saveBtn.style.border = 'none';
-			saveBtn.style.padding = '4px 10px';
-			saveBtn.style.borderRadius = '4px';
+			saveBtn.type = 'button';
 			saveBtn.style.cursor = 'pointer';
-			saveBtn.style.marginLeft = '15px';
-			
-			saveBtn.addEventListener('click', function (e) {
-				saveItemChanges(e, p.sheet_row_index, li);
-			});
+			saveBtn.addEventListener('click', function (e) { saveItemChanges(e, p.sheet_row_index, li); });
 			links.appendChild(saveBtn);
-		}
-		
-		if (links.childNodes.length) { li.appendChild(links); }
 
-		// Sample entry tag rendering
-		if (p.sample) {
-			var tag = el('p', '', '');
-			tag.style.marginTop = '12px';
-			tag.appendChild(el('span', 'sample-tag', 'Sample entry'));
-			li.appendChild(tag);
+			var deleteBtn = el('button', 'btn', 'Delete Entry');
+			deleteBtn.type = 'button';
+			deleteBtn.style.cursor = 'pointer';
+			deleteBtn.style.backgroundColor = '#dc3545';
+			deleteBtn.style.borderColor = '#dc3545';
+			deleteBtn.style.color = '#fff';
+			deleteBtn.style.marginLeft = '10px';
+			deleteBtn.addEventListener('click', function (e) { deleteRepositoryItem(e, p.sheet_row_index); });
+			links.appendChild(deleteBtn);
 		}
+
+		if (links.childNodes.length) { li.appendChild(links); }
 
 		return li;
 	}
 
 	function saveItemChanges(event, sheetRowIndex, cardElement) {
 		var btn = event.target;
+		var originalText = btn.textContent;
 		btn.textContent = "Saving...";
 		btn.disabled = true;
 
@@ -348,9 +341,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 		editableFields.forEach(function (field) {
 			updatedData[field.dataset.key] = field.textContent.trim();
 		});
-		var urlInput = cardElement.querySelector('.repo-url-input');
-		if (urlInput) { updatedData.url = urlInput.value.trim(); }
-		updatedData[cardElement._entry.tagField] = (cardElement._entry.tags || []).join(', ');
 
 		var payload = {
 			sheet_row_index: sheetRowIndex,
@@ -365,66 +355,94 @@ const API_URL = "https://script.google.com/macros/s/AKfycbx36gYdhGNH7UK1cgHU7wOP
 		})
 		.then(function () {
 			btn.textContent = "Saved!";
-			btn.style.backgroundColor = "#28a745";
 			setTimeout(function () {
-				btn.textContent = "Save Changes";
-				btn.style.backgroundColor = "#007bff";
+				btn.textContent = originalText;
 				btn.disabled = false;
-				fetchRepositoryData(); 
-			}, 1500);
+				fetchRepositoryData();
+			}, 1200);
+		});
+	}
+
+	function deleteRepositoryItem(event, sheetRowIndex) {
+		if (!confirm("Are you sure you want to completely remove this entry from your Google Sheet database?")) return;
+		var btn = event.target;
+		btn.textContent = "Deleting...";
+		btn.disabled = true;
+
+		fetch(API_URL, {
+			method: "POST",
+			mode: "no-cors",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ action: "delete", sheet_row_index: sheetRowIndex })
 		})
-		.catch(function () {
-			alert("Network update failed.");
-			btn.textContent = "Save Changes";
-			btn.disabled = false;
+		.then(function () {
+			setTimeout(function () {
+				fetchRepositoryData();
+			}, 1200);
 		});
 	}
 
 	function render() {
 		var words = qEl.value.toLowerCase().split(/\s+/).filter(Boolean);
 		var topic = topicEl.value;
-
 		var out = data.filter(function (p) {
 			if (topic && (p.tags || []).indexOf(topic) === -1) { return false; }
 			var h = haystack(p);
 			return words.every(function (w) { return h.indexOf(w) !== -1; });
 		});
-
 		var how = sortEl.value;
 		out.sort(function (a, b) {
 			if (how === 'title') { return a.title.localeCompare(b.title); }
 			if (how === 'oldest') { return time(a) - time(b); }
 			return time(b) - time(a);
 		});
-
+		
 		list.textContent = '';
+
+		if (isEditModeActive) {
+			var addLi = el('li', 'paper');
+			addLi.id = "add-entry-btn";
+			addLi.style.border = "2px dashed #ccc";
+			addLi.style.textAlign = "center";
+			addLi.style.cursor = "pointer";
+			
+			var addHeading = el('h2', '', '➕ Add New Entry');
+			addHeading.id = 'add-entry-title-text';
+			addHeading.style.margin = "10px 0";
+			
+			addLi.appendChild(addHeading);
+			addLi.addEventListener('click', createNewRepositoryEntry);
+			list.appendChild(addLi);
+		}
+
 		out.forEach(function (p) { list.appendChild(card(p)); });
 		empty.hidden = out.length !== 0;
-
 		var bits = [];
-        if (qEl.value.trim()) { bits.push('matching “' + qEl.value.trim() + '”'); }
-        if (topic) { bits.push('in ' + topic); }
-        count.textContent = out.length + (out.length === 1 ? ' result' : ' results') + (bits.length ? ' ' + bits.join(' ') : '');
-        clearBtn.hidden = !(qEl.value.trim() || topic);
-        try {
-            var next = new URLSearchParams();
-            if (qEl.value.trim()) { next.set('q', qEl.value.trim()); }
-            if (topic) { next.set('topic', topic); }
-            var s = next.toString();
-            window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
-        } catch (e) {}
-    }
-form.addEventListener('submit', function (ev) { ev.preventDefault(); render(); });
-qEl.addEventListener('input', render);
-topicEl.addEventListener('change', render);
-sortEl.addEventListener('change', render);
-toggle.addEventListener('click', function () { setPanel(panel.hidden); });
-clearBtn.addEventListener('click', function () {
-    qEl.value = '';
-    topicEl.value = '';
-    render();
-    qEl.focus();
-});
-injectEditToggleButton();
-fetchRepositoryData();
+		if (qEl.value.trim()) { bits.push('matching “' + qEl.value.trim() + '”'); }
+		if (topic) { bits.push('in ' + topic); }
+		count.textContent = out.length + (out.length === 1 ? ' result' : ' results') + (bits.length ? ' ' + bits.join(' ') : '');
+		clearBtn.hidden = !(qEl.value.trim() || topic);
+		try {
+			var next = new URLSearchParams();
+			if (qEl.value.trim()) { next.set('q', qEl.value.trim()); }
+			if (topic) { next.set('topic', topic); }
+			var s = next.toString();
+			window.history.replaceState(null, '', s ? '?' + s : window.location.pathname);
+		} catch (e) {}
+	}
+
+	form.addEventListener('submit', function (ev) { ev.preventDefault(); render(); });
+	qEl.addEventListener('input', render);
+	topicEl.addEventListener('change', render);
+	sortEl.addEventListener('change', render);
+	toggle.addEventListener('click', function () { setPanel(panel.hidden); });
+	clearBtn.addEventListener('click', function () {
+		qEl.value = '';
+		topicEl.value = '';
+		render();
+		qEl.focus();
+	});
+
+	injectEditToggleButton();
+	fetchRepositoryData();
 })();
