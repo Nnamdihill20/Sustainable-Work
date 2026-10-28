@@ -43,7 +43,6 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	}
 
 	function fetchRepositoryData() {
-		// Uses standard redirect handling natively for clean CORS resolution
 		fetch(API_URL)
 			.then(function (response) { return response.json(); })
 			.then(function (fetchedData) {
@@ -57,7 +56,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 						keywords: row.keywords ? row.keywords.split(',').map(function(k){ return k.trim(); }).filter(Boolean) : [],
 						url: row.url || "",
 						pdf: row.pdf || "",
-						rawSortDate: row.date || row.year || "",
+						sample: row.sample === true || row.sample === "true" || row.sample === "Sample entry",
 						sheet_row_index: row.sheet_row_index
 					};
 				});
@@ -67,16 +66,26 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			})
 			.catch(function (err) {
 				list.textContent = '';
-				list.appendChild(el('li', '', 'Failed to sync with repository database stream. Verification of API Deployment configuration required.'));
+				list.appendChild(el('li', '', 'Failed to sync with repository database stream.'));
 			});
+	}
+
+	// Collects globally available unique tags for the selector menu
+	function getAllUniqueTags() {
+		var seen = {};
+		data.forEach(function (p) {
+			(p.tags || []).forEach(function (t) {
+				if (t.trim()) { seen[t.trim()] = true; }
+			});
+		});
+		return Object.keys(seen).sort();
 	}
 
 	function buildTopicOptions() {
 		var currentSelection = topicEl.value;
-		var seen = {};
-		data.forEach(function (p) { (p.tags || []).forEach(function (t) { seen[t] = true; }); });
+		var uniqueTags = getAllUniqueTags();
 		topicEl.innerHTML = '<option value="">All topics</option>';
-		Object.keys(seen).sort().forEach(function (t) {
+		uniqueTags.forEach(function (t) {
 			var o = el('option', '', t);
 			o.value = t;
 			topicEl.appendChild(o);
@@ -145,10 +154,8 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	}
 
 	function time(p) {
-		if (!p.rawSortDate) {
-			return isEditModeActive ? Date.now() : 0;
-		}
-		var t = Date.parse(p.rawSortDate);
+		var dStr = p.date || "";
+		var t = Date.parse(dStr);
 		return isNaN(t) ? 0 : t;
 	}
 
@@ -199,42 +206,99 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			li.appendChild(pAbstract);
 		}
 
-		// Chips Display
-		if (!isEditModeActive && p.tags && p.tags.length) {
-			var ul = el('ul', 'chips');
-			p.tags.forEach(function (t) {
-				var item = el('li');
-				var a = el('a', '', t);
-				a.href = '?topic=' + encodeURIComponent(t);
-				a.addEventListener('click', function (ev) {
-					ev.preventDefault();
-					topicEl.value = t;
-					setPanel(true);
-					render();
+		// Combined Chips & Tag Control Interface Wrapper
+		var tagsWrapper = el('div', '');
+		li.appendChild(tagsWrapper);
+
+		function renderTagsSection() {
+			tagsWrapper.innerHTML = '';
+			
+			// Native Chips UI Block
+			if (p.tags && p.tags.length) {
+				var ul = el('ul', 'chips');
+				p.tags.forEach(function (t) {
+					var item = el('li');
+					var a = el('a', '', t);
+					if (!isEditModeActive) {
+						a.href = '?topic=' + encodeURIComponent(t);
+						a.addEventListener('click', function (ev) {
+							ev.preventDefault();
+							topicEl.value = t;
+							setPanel(true);
+							render();
+						});
+					} else {
+						// Custom tag removal interface matching theme styles
+						a.href = '#';
+						a.style.cursor = 'default';
+						a.addEventListener('click', function(ev) { ev.preventDefault(); });
+						
+						var removeX = el('span', '', ' ×');
+						removeX.style.color = '#dc3545';
+						removeX.style.fontWeight = 'bold';
+						removeX.style.marginLeft = '5px';
+						removeX.style.cursor = 'pointer';
+						removeX.title = 'Remove tag';
+						removeX.addEventListener('click', function(ev) {
+							ev.stopPropagation();
+							p.tags = p.tags.filter(function(tag) { return tag !== t; });
+							renderTagsSection();
+						});
+						a.appendChild(removeX);
+					}
+					item.appendChild(a);
+					ul.appendChild(item);
 				});
-				item.appendChild(a);
-				ul.appendChild(item);
-			});
-			li.appendChild(ul);
+				tagsWrapper.appendChild(ul);
+			}
+
+			// Add Tags Dropdown Panel (Only visible when Edit Mode is ON)
+			if (isEditModeActive) {
+				var addTagPara = el('p', 'paper-abstract');
+				addTagPara.style.fontSize = '0.85em';
+				addTagPara.style.color = '#555';
+				addTagPara.style.marginTop = '10px';
+				addTagPara.innerHTML = '<strong>Add Tag: </strong>';
+
+				var allTags = getAllUniqueTags();
+				var selectNewTag = el('select', '');
+				selectNewTag.className = 'btn btn-light';
+				selectNewTag.style.fontSize = '0.9em';
+				selectNewTag.style.padding = '2px 5px';
+				selectNewTag.style.height = 'auto';
+				selectNewTag.innerHTML = '<option value="">-- Select Tag --</option>';
+
+				// Filter out tags that are already attached to this entry
+				var availableTags = allTags.filter(function(t) {
+					return (p.tags || []).indexOf(t) === -1;
+				});
+
+				availableTags.forEach(function(t) {
+					var opt = el('option', '', t);
+					opt.value = t;
+					selectNewTag.appendChild(opt);
+				});
+
+				var addBtn = el('button', 'btn btn-light', ' ➕ ');
+				addBtn.type = 'button';
+				addBtn.style.padding = '2px 8px';
+				addBtn.style.marginLeft = '5px';
+				addBtn.style.fontSize = '0.9em';
+
+				addBtn.addEventListener('click', function() {
+					var selectedVal = selectNewTag.value;
+					if (selectedVal && (p.tags || []).indexOf(selectedVal) === -1) {
+						p.tags.push(selectedVal);
+						renderTagsSection();
+					}
+				});
+
+				addTagPara.appendChild(selectNewTag);
+				addTagPara.appendChild(addBtn);
+				tagsWrapper.appendChild(addTagPara);
+			}
 		}
-
-		// Interactive Tags / Topics Editor
-		if (isEditModeActive) {
-			var tWrapper = el('p', 'paper-abstract');
-			tWrapper.style.fontSize = '0.85em';
-			tWrapper.style.color = '#555';
-			tWrapper.style.marginTop = '10px';
-			tWrapper.innerHTML = '<strong>Topics / Tags (comma-separated):</strong> ';
-
-			var tSpan = el('span', '');
-			tSpan.textContent = p.tags.join(', ');
-			tSpan.setAttribute('contenteditable', 'true');
-			tSpan.setAttribute('style', editStyle + ' display: inline-block; width: 75%;');
-			tSpan.dataset.key = 'tags';
-
-			tWrapper.appendChild(tSpan);
-			li.appendChild(tWrapper);
-		}
+		renderTagsSection();
 
 		// Inline Keywords Editor
 		if (isEditModeActive) {
@@ -288,7 +352,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			li.appendChild(urlWrapper);
 		}
 
-		// Resource Action links
+		// Resource Action links row
 		var links = el('p', 'paper-links');
 		if (!isEditModeActive) {
 			if (p.pdf) {
@@ -310,7 +374,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			var saveBtn = el('button', 'btn', 'Save Changes');
 			saveBtn.type = 'button';
 			saveBtn.style.cursor = 'pointer';
-			saveBtn.addEventListener('click', function (e) { saveItemChanges(e, p.sheet_row_index, li); });
+			saveBtn.addEventListener('click', function (e) { saveItemChanges(e, p.sheet_row_index, li, p.tags); });
 			links.appendChild(saveBtn);
 
 			var deleteBtn = el('button', 'btn', 'Delete Entry');
@@ -325,11 +389,10 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 		}
 
 		if (links.childNodes.length) { li.appendChild(links); }
-
 		return li;
 	}
 
-	function saveItemChanges(event, sheetRowIndex, cardElement) {
+	function saveItemChanges(event, sheetRowIndex, cardElement, activeTagsArray) {
 		var btn = event.target;
 		var originalText = btn.textContent;
 		btn.textContent = "Saving...";
@@ -341,6 +404,9 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 		editableFields.forEach(function (field) {
 			updatedData[field.dataset.key] = field.textContent.trim();
 		});
+
+		// Map tags array seamlessly to a comma-separated text string for Google Sheets storage
+		updatedData['tags'] = (activeTagsArray || []).join(', ');
 
 		var payload = {
 			sheet_row_index: sheetRowIndex,
@@ -385,16 +451,28 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	function render() {
 		var words = qEl.value.toLowerCase().split(/\s+/).filter(Boolean);
 		var topic = topicEl.value;
-		var out = data.filter(function (p) {
+		
+		// Create a deep copy of dataset for sorting so that empty row dates don't corrupt live rows
+		var sortedData = data.slice();
+		var how = sortEl.value;
+		sortedData.sort(function (a, b) {
+			if (how === 'title') { return (a.title || "").localeCompare(b.title || ""); }
+			
+			var timeA = time(a);
+			var timeB = time(b);
+			
+			// Give empty template rows top billing chronological sorting priority
+			if (!a.date) timeA = (how === 'oldest') ? 0 : Infinity;
+			if (!b.date) timeB = (how === 'oldest') ? 0 : Infinity;
+
+			if (how === 'oldest') { return timeA - timeB; }
+			return timeB - timeA;
+		});
+
+		var out = sortedData.filter(function (p) {
 			if (topic && (p.tags || []).indexOf(topic) === -1) { return false; }
 			var h = haystack(p);
 			return words.every(function (w) { return h.indexOf(w) !== -1; });
-		});
-		var how = sortEl.value;
-		out.sort(function (a, b) {
-			if (how === 'title') { return a.title.localeCompare(b.title); }
-			if (how === 'oldest') { return time(a) - time(b); }
-			return time(b) - time(a);
 		});
 		
 		list.textContent = '';
