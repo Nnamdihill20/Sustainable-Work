@@ -1,6 +1,6 @@
 # Sustainable Work Lab
 
-A website for Penn State Abington's Sustainable Work Lab, providing information about research, publications, events, and resources related to sustainable work.
+A website for Penn State Abington's Sustainable Work Lab.
 
 ## Technologies
 - HTML
@@ -15,20 +15,12 @@ A website for Penn State Abington's Sustainable Work Lab, providing information 
 - `homepage.html` – Main homepage
 
 ## Website Pages
-- **Home** – Introduction to the lab, featured research, director information, and five research pillars
+- **Home** – Introduction to the lab
 - **Repositories** – Research and publication resources
 - **Get Connected** – Opportunities to connect with the lab
 - **Media** – Articles and media related to the lab
 - **Contact Lab** – Contact information
 - **Surveys** – Research surveys
-
-## Features
-- Responsive navigation and page layouts
-- Research slideshow with automatic transitions and manual controls
-- Featured research links to SSRN and MDPI
-- Director profile and research overview
-- Five pillars of sustainable work
-- Separate pages for research, media, and resources
 
 ## Getting Started
 1. Clone the repository.
