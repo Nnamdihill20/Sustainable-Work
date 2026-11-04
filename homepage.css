@@ -195,7 +195,7 @@ li{
 }
 
 .slide:nth-child(2){
-	background-color: #283618;
+	background-color: #5B6983;
 }
 
 .slide:nth-child(3){
@@ -228,7 +228,7 @@ li{
 .slide-text{
 	font-family: Georgia, serif;
 	font-size: 1.3rem;
-	color: var(--forest);
+	color: #1B1B1B;
 }
 .slide-link:hover .slide-text{ text-decoration: underline; text-underline-offset: 5px; }
 
@@ -312,7 +312,7 @@ li{
 	cursor: pointer;
 }
 
-.active{
+.slide-dots button[aria-current= "true"]{
 	background: var(--cream); 
 }
 
