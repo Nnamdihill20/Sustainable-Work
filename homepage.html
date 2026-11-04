@@ -7,6 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="homepage.css">
 </head>
 <body>
+	<!-- do we need this since the nav is sticky? the content is always right under the nav so it aint skipping much -->
 	<a class="skip-link" href="#main">Skip to content</a>
 
 	<!-- navagation bar (add pages to href when created) -->
@@ -19,9 +20,8 @@
 			<a href="contact.html">Contact Lab</a>
 			<a href="surveys.html">Surveys</a>
 		</div>
-		<!-- Penn State logo goes here (the wireframe puts it at the right end of the nav bar).
-		     Swap the "PSU" text for <img src="psu_logo.png" alt="Penn State"> once the team has the approved file. -->
-		<a class="nav-logo" href="https://abington.psu.edu" target="_blank" rel="noopener" aria-label="Penn State Abington">PSU</a>
+		<!-- Penn State logo goes here  -->
+		<a class="nav-logo" href="https://abington.psu.edu" target="_blank" rel="noopener" aria-label="Penn State Abington"><img src="penn_state_abington.png"></a>
 	</nav>
 
 	<main id="main">
@@ -42,32 +42,24 @@
 				</div>
 				<div class="slide" aria-label="2 of 4">
 					<div class="slide-body">
-						<h2>Job quality</h2>
-						<p>What makes a good job? We look at pay, benefits and flexibility alongside how secure, safe and useful work feels to the people doing it.</p>
-						<ul class="chips"><li><a href="repositories.html?topic=Job%20quality">Job quality</a></li></ul>
-						<a class="slide-cta" href="repositories.html?topic=Job%20quality">Browse job quality research</a>
+						<h2>Slide 2</h2>
 					</div>
 				</div>
 				<div class="slide" aria-label="3 of 4">
 					<div class="slide-body">
-						<h2>Salutogenic work design</h2>
-						<p>The work conditions that promote health: autonomy, meaningful work, a voice at work, fair treatment and supportive supervisors.</p>
-						<ul class="chips"><li><a href="repositories.html?topic=Salutogenic%20work%20design">Salutogenic work design</a></li></ul>
-						<a class="slide-cta" href="repositories.html?topic=Salutogenic%20work%20design">Browse work design research</a>
+						<h2>Slide 3</h2>
 					</div>
 				</div>
 				<div class="slide" aria-label="4 of 4">
 					<div class="slide-body">
-						<h2>Golden hours / SHOWWW</h2>
-						<p>Sustainable Hours of Work, Workplaces and Workers: working time, scheduling input, four-day workweeks and how AI is reshaping jobs.</p>
-						<ul class="chips"><li><a href="repositories.html?topic=Golden%20hours%20%2F%20SHOWWW">Golden hours / SHOWWW</a></li></ul>
-						<a class="slide-cta" href="repositories.html?topic=Golden%20hours%20%2F%20SHOWWW">Browse working time research</a>
+						<h2>Slide 4</h2>
 					</div>
 				</div>
 			</div>
 
-			<button class="slide-btn slide-prev" type="button" aria-label="Previous slide">&#8249;</button>
-			<button class="slide-btn slide-next" type="button" aria-label="Next slide">&#8250;</button>
+			<!-- slideshow controls -->
+			<button class="slide-btn slide-prev" type="button" aria-label="Previous slide" onclick="plusSlides(-1)">&#8249;</button>
+			<button class="slide-btn slide-next" type="button" aria-label="Next slide" onclick="plusSlides(1)">&#8250;</button>
 			<div class="slide-dots" role="group" aria-label="Choose a slide"></div>
 		</div>
 
@@ -75,29 +67,49 @@
 		<section id="bottom-half" aria-labelledby="about-heading">
 			<div class="director">
 				<div class="img-container">
-				<!-- Placeholder: this is a TV screengrab. Swap in an official headshot (same filename, or update src). -->
+
 				<img src="director_image.png" alt="Lonnie Golden, Ph.D.">
 				</div>
 				<p class="director-name">Lonnie Golden, Ph.D.</p>
 				<p class="director-role">Director of the Sustainable Work Lab</p>
 			</div>
 
-			<!-- Draft copy built from the project proposal. Dr. Golden should approve the final wording. -->
 			<div class="text-blurb">
-				<h2 id="about-heading">About the Sustainable Work Lab</h2>
-				<p>The Sustainable Work Lab is an interdisciplinary research lab at Penn State Abington. It studies job quality, sustainable working time and worker well-being, and how work can be designed to keep the people doing it healthy.</p>
-				<p>The lab shares its research with students, scholars, policymakers, journalists and community organizations. If you would like to collaborate, you are welcome to get in touch.</p>
-				<div class="actions">
-					<a class="btn" href="repositories.html">Browse the research</a>
-					<a class="btn btn-tan" href="contact.html">Contact Dr. Golden</a>
-				</div>
+				<h2 id="about-heading"><strong style="color: #DAA520"> Golden Sustainable Work </strong>LAB at Penn State Abington</h2>
+				<h3 style="padding-top: 10px;"><i>The <strong >Future</strong> of Work is Here...</i></h3>				
+				<p>A cross disciplinary, empirical research  hub that disseminates and conducts new research  services that addresses how our labor markets, organizations and policymakers better create work that is sustainable for all our human resources</p>
+				<p>Document how work, jobs, technological advance and the economy promote (or harm) long term health and well-being while still improve the performance of workers, firms, communities and labor markets? 
+				What minimum and maximum quantity of work can sustain the financial and mental wellbeing of individuals? What minimum quality of jobs and work can provide opportunities for flourishing? Do current labor market trends signal sustainability? How can the research inform any evidence-based policy discussion to achieve labor sustainability?</p>
 			</div>
+		</section>
+
+		<!-- big section (goes into details) -->
+		<section id="bigger-bottom-half">
+		<div class="text-blurb" style=" display: flex;">
+
+			<div id="section-img-container" style="margin-right: 50px;">
+				<img src="GoldenHours consulting framework infographic.png">
+			</div>
+
+			<div>
+				<h2>The Five Pillars</h2>
+				<ol>
+					<li>Sustainable Hours of Work, Workforce and Workplaces (SHOWWW) Analysis and Practices – Goldielocks Hours </li>
+					<li>Health and Well-being-Creating Work and Workplaces</li>
+					<li>Job Quality Measurement and Improvement</li>
+					<li>Labor Market Analysis, Current and Future Trends and Patterns</li>
+					<li>Labor Standards, Legal and Policy Analysis</li>
+				</ol>	
+			</div>
+
+		</div>
 		</section>
 	</main>
 
 	<footer class="site-footer">
 		<div class="wrap foot">
 			<p>Sustainable Work Lab, Penn State Abington</p>
+			<!-- do we need to have the footer also be a nav? The nav is already sticky so the user will always see it... but if on a phone maybe we do need it -->
 			<nav aria-label="Footer">
 				<a href="homepage.html">Home</a>
 				<a href="repositories.html">Repositories</a>

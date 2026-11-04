@@ -17,14 +17,20 @@
 	--wrap: 1100px;
 }
 
+/* things we don't really need:
+- actions css
+- skip link 
+- chips css
+- slide-cta css (the slides just gonna be images with a caption underneath so were not gonna need buttons and such)
+*/
+
 *,
 *::before,
 *::after{ box-sizing: border-box; }
 
 body{
 	background-color: #FEFAE0;
-	margin-left: 0;
-	margin-top: 0;
+	margin: 0;
 	font-family: Helvetica, Arial, sans-serif;
 	color: var(--forest);
 	line-height: 1.6;
@@ -42,6 +48,11 @@ p{ margin: 0; }
 img{ display: block; max-width: 100%; }
 
 a{ color: var(--rust-deep); }
+
+li{
+	margin-bottom: 30px;
+	font-size: 1.1rem;
+}
 
 :focus-visible{
 	outline: 3px solid var(--rust);
@@ -124,18 +135,11 @@ a{ color: var(--rust-deep); }
 /* Wireframe puts the Penn State logo at the right end of the nav bar. */
 .nav_horizontal .nav-logo{
 	flex: none;
-	width: 46px;
-	height: 46px;
-	padding: 0;
-	display: grid;
+	width: 10%;
+	height: 5%;
+	padding: 5px 10px 5px 10px;
+	display: grid-lanes;
 	place-items: center;
-	border: 2px solid var(--tan);
-	border-radius: 50%;
-	color: var(--cream);
-	font-family: Georgia, serif;
-	font-size: 0.95rem;
-	font-weight: 700;
-	letter-spacing: 0.02em;
 }
 .nav_horizontal .nav-logo:hover{ background-color: var(--olive); }
 
@@ -307,14 +311,17 @@ a{ color: var(--rust-deep); }
 	background: transparent;
 	cursor: pointer;
 }
-.slide-dots button[aria-current="true"]{ background: var(--cream); }
+
+.active{
+	background: var(--cream); 
+}
 
 /* css for bottom half */
 
 #bottom-half{
 	width: min(var(--wrap), 92%);
 	margin: 40px auto 0;
-	padding: 44px 0 64px;
+	padding: 44px 0 20px;
 	border-top: 2px dashed var(--tan);
 	display: grid;
 	grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
@@ -395,6 +402,26 @@ a{ color: var(--rust-deep); }
 	font-weight: 700;
 }
 .director-role{ color: var(--muted); margin-top: 2px; }
+
+/* css for the bigger section underneath the about section*/
+
+#bigger-bottom-half{
+	width: 1100px;
+	margin: 40px auto 0;
+	padding: 20px 0 64px;
+	gap: clamp(28px, 5vw, 64px,);
+	display: grid;	
+}
+
+#section-img-container{
+	width: 40%;
+	height: auto;
+	border: 4px solid #DDA15E;
+}
+
+#section-img-container img{
+	object-fit: fill;
+}
 
 /* ---------- Footer (shared by every page) ---------- */
 
