@@ -52,7 +52,12 @@ async function makeTable(tableId, name) {
 
 async function main() {
   await tryCreate('admins team', () => teams.create({ teamId: 'admins', name: 'Admins' }));
-  await tryCreate('database', () => db.create({ databaseId: DB_ID, name: 'Sustainable Work Lab' }));
+  try {
+    await db.get({ databaseId: DB_ID });
+    console.log('already exists: database');
+  } catch (err) {
+    await tryCreate('database', () => db.create({ databaseId: DB_ID, name: 'Sustainable Work Lab' }));
+  }
 
   const base = { databaseId: DB_ID };
 
@@ -60,13 +65,16 @@ async function main() {
   let t = { ...base, tableId: 'publications' };
   await makeTable('publications', 'Publications');
   await tryCreate('title', () => db.createVarcharColumn({ ...t, key: 'title', size: 300, required: true }));
-  await tryCreate('summary', () => db.createTextColumn({ ...t, key: 'summary', required: false }));
-  await tryCreate('paper_url', () => db.createUrlColumn({ ...t, key: 'paper_url', required: false }));
-  await tryCreate('publication_year', () => db.createIntegerColumn({ ...t, key: 'publication_year', required: false }));
+  await tryCreate('authors', () => db.createVarcharColumn({ ...t, key: 'authors', size: 500, required: false }));
+  await tryCreate('publication_date', () => db.createVarcharColumn({ ...t, key: 'publication_date', size: 50, required: false }));
+  await tryCreate('description', () => db.createTextColumn({ ...t, key: 'description', required: false }));
+  await tryCreate('tags', () => db.createVarcharColumn({ ...t, key: 'tags', size: 1000, required: false }));
+  await tryCreate('keywords', () => db.createVarcharColumn({ ...t, key: 'keywords', size: 1000, required: false }));
+  await tryCreate('read_online_url', () => db.createVarcharColumn({ ...t, key: 'read_online_url', size: 2000, required: false }));
+  await tryCreate('pdf_url', () => db.createVarcharColumn({ ...t, key: 'pdf_url', size: 2000, required: false }));
   await tryCreate('created_by', () => db.createVarcharColumn({ ...t, key: 'created_by', size: 36, required: false }));
   await waitForColumns('publications');
   await tryCreate('title search index', () => db.createIndex({ ...t, key: 'title_search', type: 'fulltext', columns: ['title'] }));
-  await tryCreate('year index', () => db.createIndex({ ...t, key: 'year_sort', type: 'key', columns: ['publication_year'] }));
 
   // Tags
   t = { ...base, tableId: 'tags' };
