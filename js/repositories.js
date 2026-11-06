@@ -1,5 +1,3 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4FmBcJm5cBVUEwJw39VTdoBJmnZ-CgauR1T48uC4wPdZ5kiA/exec";
-
 (function () {
 	var data = [];
 	var isEditModeActive = false;
@@ -43,8 +41,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	}
 
 	function fetchRepositoryData() {
-		fetch(API_URL)
-			.then(function (response) { return response.json(); })
+		SWL_DB.list()
 			.then(function (fetchedData) {
 				data = fetchedData.map(function (row) {
 					var sourceDate = row.date || row.year || "";
@@ -135,12 +132,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 		var addCardBtn = document.getElementById('add-entry-title-text');
 		if (addCardBtn) addCardBtn.textContent = "Creating New Blank Entry...";
 
-		fetch(API_URL, {
-			method: "POST",
-			mode: "no-cors",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ action: "create" })
-		})
+		SWL_DB.create()
 		.then(function() {
 			setTimeout(function() {
 				fetchRepositoryData();
@@ -420,12 +412,7 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 			updated_data: updatedData
 		};
 
-		fetch(API_URL, {
-			method: "POST",
-			mode: "no-cors",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload)
-		})
+		SWL_DB.update(sheetRowIndex, updatedData)
 		.then(function () {
 			btn.textContent = "Saved!";
 			setTimeout(function () {
@@ -437,17 +424,12 @@ const API_URL = "https://script.google.com/macros/s/AKfycbygYIDb1WrysBoBVqNZUO4F
 	}
 
 	function deleteRepositoryItem(event, sheetRowIndex) {
-		if (!confirm("Are you sure you want to completely remove this entry from your Google Sheet database?")) return;
+		if (!confirm("Are you sure you want to completely remove this entry from the database?")) return;
 		var btn = event.target;
 		btn.textContent = "Deleting...";
 		btn.disabled = true;
 
-		fetch(API_URL, {
-			method: "POST",
-			mode: "no-cors",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ action: "delete", sheet_row_index: sheetRowIndex })
-		})
+		SWL_DB.remove(sheetRowIndex)
 		.then(function () {
 			setTimeout(function () {
 				fetchRepositoryData();
