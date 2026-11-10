@@ -12,7 +12,7 @@
  */
 
 // Replace this with your deployed Surveys Apps Script URL.
-const API_URL = "PASTE_YOUR_SURVEYS_WEB_APP_URL_HERE";
+const API_URL = "https://script.google.com/macros/s/AKfycby0rCw6jO2K_iXoccFBVDTVCGUx1v9xG1a0RBVK5yeWA4l4XAb10DYNRzb_pvBQy4iQ/exec";
 
 document.addEventListener("DOMContentLoaded", function () {
     const labSurveyList = document.querySelector(
