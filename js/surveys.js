@@ -1,27 +1,10 @@
 
-/*
- * Sustainable Work Lab
- * Surveys Page
- *
- * Handles:
- * - Loading surveys from Google Sheets
- * - Displaying Lab and Other surveys
- * - Editing survey information
- * - Adding and deleting surveys
- * - Saving changes to Google Sheets
- */
-
-// Replace this with your deployed Surveys Apps Script URL.
-const API_URL = "https://script.google.com/macros/s/AKfycby0rCw6jO2K_iXoccFBVDTVCGUx1v9xG1a0RBVK5yeWA4l4XAb10DYNRzb_pvBQy4iQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbwiG7e9M_55Xs7Qz9OaIHmEZMuWbn4SC11McdTwUN65XZrEuazJZ0g-It34OdudzWFkqg/exec?sheet=Surveys";
 
 document.addEventListener("DOMContentLoaded", function () {
-    const labSurveyList = document.querySelector(
-        "#lab-h + .survey-list"
-    );
 
-    const otherSurveyList = document.querySelector(
-        "#other-h + .survey-list"
-    );
+    const labSurveyList = document.querySelector("#lab-h + .survey-list");
+    const otherSurveyList = document.querySelector("#other-h + .survey-list");
 
     if (!labSurveyList || !otherSurveyList) {
         console.error("Survey lists could not be found.");
@@ -31,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let surveys = [];
     let editMode = false;
 
-    // Create the Edit Mode controls.
+    // Edit controls
     const controls = document.createElement("div");
     controls.className = "survey-controls";
 
@@ -45,23 +28,23 @@ document.addEventListener("DOMContentLoaded", function () {
         <span id="survey-status" role="status"></span>
     `;
 
-    const pageHeader = document.querySelector("main");
+    const pageHeader = document.querySelector(".page-head");
 
     if (pageHeader) {
-        pageHeader.insertBefore(controls, pageHeader.firstChild);
+        pageHeader.appendChild(controls);
     }
 
     const toggleButton = document.getElementById("toggle-edit");
     const addButton = document.getElementById("add-survey");
     const statusMessage = document.getElementById("survey-status");
 
-    // Load surveys when the page opens.
-    loadSurveys();
-
+    // Retrieve surveys from Google Sheets
     async function loadSurveys() {
+
         statusMessage.textContent = "Loading surveys...";
 
         try {
+
             const response = await fetch(API_URL);
 
             if (!response.ok) {
@@ -86,25 +69,34 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             renderSurveys();
+
             statusMessage.textContent = "";
 
         } catch (error) {
+
             console.error("Error loading surveys:", error);
-            statusMessage.textContent =
-                "Could not load surveys. Please refresh the page.";
+
+            statusMessage.textContent = "Could not load surveys. Check the console for errors.";
+
         }
     }
 
-    // Display surveys in their appropriate sections.
+    // Display surveys in their appropriate sections
     function renderSurveys() {
+
         labSurveyList.innerHTML = "";
         otherSurveyList.innerHTML = "";
 
         const sortedSurveys = [...surveys].sort(function (a, b) {
+            if (a.section !== b.section) {
+                return a.section.localeCompare(b.section);
+            }
+
             return a.order - b.order;
         });
 
         sortedSurveys.forEach(function (survey) {
+
             const listItem = document.createElement("li");
 
             if (editMode) {
@@ -113,16 +105,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 listItem.appendChild(createSurveyLink(survey));
             }
 
-            if (survey.section === "Other") {
+            if (survey.section.trim().toLowerCase() === "other") {
                 otherSurveyList.appendChild(listItem);
             } else {
                 labSurveyList.appendChild(listItem);
             }
+
         });
     }
 
-    // Create a normal survey link.
+    // Normal survey link
     function createSurveyLink(survey) {
+
         const link = document.createElement("a");
 
         link.className = "survey";
@@ -150,8 +144,9 @@ document.addEventListener("DOMContentLoaded", function () {
         return link;
     }
 
-    // Create the editing controls for one survey.
+    // Survey editing form
     function createEditForm(survey) {
+
         const container = document.createElement("div");
         container.className = "survey-editor";
 
@@ -159,26 +154,25 @@ document.addEventListener("DOMContentLoaded", function () {
         titleInput.type = "text";
         titleInput.placeholder = "Survey title";
         titleInput.value = survey.title;
-        titleInput.className = "survey-edit-title";
 
         const urlInput = document.createElement("input");
         urlInput.type = "url";
         urlInput.placeholder = "Survey URL";
         urlInput.value = survey.url;
-        urlInput.className = "survey-edit-url";
 
         const sectionSelect = document.createElement("select");
+
         sectionSelect.innerHTML = `
             <option value="Lab">Lab surveys</option>
             <option value="Other">Other relevant surveys</option>
         `;
+
         sectionSelect.value = survey.section;
 
         const noteInput = document.createElement("input");
         noteInput.type = "text";
         noteInput.placeholder = "Survey description";
         noteInput.value = survey.note;
-        noteInput.className = "survey-edit-note";
 
         const saveButton = document.createElement("button");
         saveButton.type = "button";
@@ -189,6 +183,7 @@ document.addEventListener("DOMContentLoaded", function () {
         deleteButton.textContent = "Delete";
 
         saveButton.addEventListener("click", async function () {
+
             const updatedData = {
                 title: titleInput.value.trim(),
                 url: urlInput.value.trim(),
@@ -207,10 +202,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     const parsedURL = new URL(updatedData.url);
 
                     if (!["http:", "https:"].includes(parsedURL.protocol)) {
-                        throw new Error("Invalid URL protocol.");
+                        throw new Error();
                     }
+
                 } catch (error) {
-                    alert("Please enter a valid URL beginning with http:// or https://.");
+                    alert("Please enter a valid HTTP or HTTPS URL.");
                     return;
                 }
             }
@@ -220,19 +216,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 id: survey.id,
                 updated_data: updatedData
             });
+
         });
 
         deleteButton.addEventListener("click", async function () {
-            const confirmed = confirm(
-                "Are you sure you want to delete this survey?"
-            );
 
-            if (!confirmed) return;
+            if (!confirm("Are you sure you want to delete this survey?")) {
+                return;
+            }
 
             await sendRequest({
                 action: "delete",
                 id: survey.id
             });
+
         });
 
         container.appendChild(titleInput);
@@ -245,11 +242,13 @@ document.addEventListener("DOMContentLoaded", function () {
         return container;
     }
 
-    // Send changes to the Google Apps Script backend.
+    // Send updates to Google Apps Script
     async function sendRequest(payload) {
+
         statusMessage.textContent = "Saving changes...";
 
         try {
+
             const response = await fetch(API_URL, {
                 method: "POST",
                 headers: {
@@ -259,13 +258,13 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             if (!response.ok) {
-                throw new Error("The server returned an error.");
+                throw new Error("Server request failed.");
             }
 
             const result = await response.json();
 
             if (!result.success) {
-                throw new Error(result.error || result.message || "Save failed.");
+                throw new Error(result.error || "Save failed.");
             }
 
             statusMessage.textContent = "Changes saved.";
@@ -273,15 +272,17 @@ document.addEventListener("DOMContentLoaded", function () {
             await loadSurveys();
 
         } catch (error) {
+
             console.error("Error saving survey:", error);
 
-            statusMessage.textContent =
-                "Could not save changes. Please try again.";
+            statusMessage.textContent = "Could not save changes. Check the console.";
+
         }
     }
 
-    // Add a new survey.
+    // Add a new survey
     addButton.addEventListener("click", async function () {
+
         const section = prompt(
             "Which section should this survey go in? Enter Lab or Other.",
             "Lab"
@@ -291,10 +292,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const selectedSection = section.trim().toLowerCase();
 
-        if (
-            selectedSection !== "lab" &&
-            selectedSection !== "other"
-        ) {
+        if (selectedSection !== "lab" && selectedSection !== "other") {
             alert("Please enter either Lab or Other.");
             return;
         }
@@ -303,10 +301,12 @@ document.addEventListener("DOMContentLoaded", function () {
             action: "create",
             section: selectedSection === "other" ? "Other" : "Lab"
         });
+
     });
 
-    // Turn Edit Mode on or off.
+    // Toggle Edit Mode
     toggleButton.addEventListener("click", function () {
+
         editMode = !editMode;
 
         toggleButton.textContent = editMode
@@ -316,5 +316,10 @@ document.addEventListener("DOMContentLoaded", function () {
         addButton.hidden = !editMode;
 
         renderSurveys();
+
     });
+
+    // Initial load
+    loadSurveys();
+
 });

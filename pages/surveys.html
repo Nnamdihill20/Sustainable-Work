@@ -2,75 +2,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Surveys | Golden Sustainable Work Lab</title>
-
-    <link rel="stylesheet" href="../css/homepage.css">
-    <link rel="stylesheet" href="../css/pages.css">
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Surveys | Golden Sustainable Work Lab</title>
+	<link rel="stylesheet" type="text/css" href="../css/homepage.css">
+	<link rel="stylesheet" type="text/css" href="../css/pages.css">
 </head>
-
 <body>
+	<a class="skip-link" href="#main">Skip to content</a>
 
-    <!-- Navigation -->
-    <header>
-        <nav>
-            <a href="index.html">Home</a>
-            <a href="research.html">Research</a>
-            <a href="research-areas.html">Research Areas</a>
-            <a href="people.html">People</a>
-            <a href="dashboard.html">Dashboard</a>
-            <a href="media.html">Media</a>
-            <a href="get-connected.html">Get Connected</a>
-        </nav>
-    </header>
+	<!-- navagation bar (same on every page; add pages to href when created) -->
+	<nav class="nav_horizontal" aria-label="Main">
+		<div class="nav-links">
+			<a href="../homepage.html">Home</a>
+			<a href="../pages/repositories.html">Repositories</a>
+			<a href="../pages/get-connected.html">Get Connected</a>
+			<a href="../pages/media.html">Media</a>
+			<a href="../pages/contact.html">Contact Lab</a>
+			<a href="../pages/surveys.html" aria-current="page">Surveys</a>
+		</div>
+		<!-- Penn State logo goes here (see homepage.html) -->
+		<a class="nav-logo" href="https://abington.psu.edu" target="_blank" rel="noopener" aria-label="Penn State Abington"><img src="../assets/penn_state_abington.png"></a>
+	</nav>
 
-    <main>
+	<main id="main" class="wrap">
+		<header class="page-head">
+			<h1>Surveys</h1>
+			<p>Take part in the lab's research by completing a survey or find other relevant surveys that align to your interests.</p>
+		</header>
 
-        <!-- Page Header -->
-        <section class="page-head">
-            <h1>Surveys</h1>
-            <p>
-                Explore surveys related to job quality, working conditions,
-                worker well-being, and other areas of labor research.
-            </p>
-        </section>
+		<div class="page-body">
+			<section class="block" aria-labelledby="lab-h">
+				<h2 id="lab-h">Lab surveys</h2>
+				<ul class="survey-list">
+					<!-- Survey entries are loaded dynamically by surveys.js -->
+				</ul>
+			</section>
 
-        <!-- Page Content -->
-        <section class="page-body">
+			<!-- Other relevant surveys section -->
+			<section class="block" aria-labelledby="other-h">
+				<h2 id="other-h">Other relevant surveys</h2>
+				<ul class="survey-list">
+					<!-- Survey entries are loaded dynamically by surveys.js -->
+				</ul>
+			</section>
+		</div>
+	</main>
 
-            <!-- Lab Surveys Section -->
-            <section class="block" aria-labelledby="lab-h">
-                <h2 id="lab-h">Lab surveys</h2>
+	<footer class="site-footer">
+		<div class="wrap foot">
+			<p>Sustainable Work Lab, Penn State Abington</p>
+			<nav aria-label="Footer">
+				<a href="../homepage.html">Home</a>
+				<a href="../pages/repositories.html">Repositories</a>
+				<a href="../pages/get-connected.html">Get Connected</a>
+				<a href="../pages/media.html">Media</a>
+				<a href="../pages/contact.html">Contact Lab</a>
+				<a href="../pages/surveys.html">Surveys</a>
+			</nav>
+		</div>
+	</footer>
 
-                <ul class="survey-list">
-                    <!-- Surveys are loaded from Google Sheets by surveys.js -->
-                </ul>
-            </section>
-
-            <!-- Other Relevant Surveys Section -->
-            <section class="block" aria-labelledby="other-h">
-                <h2 id="other-h">Other relevant surveys</h2>
-
-                <ul class="survey-list">
-                    <!-- Surveys are loaded from Google Sheets by surveys.js -->
-                </ul>
-            </section>
-
-        </section>
-
-    </main>
-
-    <!-- Footer -->
-    <footer>
-        <p>
-            Golden Sustainable Work Lab
-        </p>
-    </footer>
-
-    <!-- Survey Management JavaScript -->
-    <script src="../js/surveys.js"></script>
+	<!-- Survey management JavaScript -->
+	<script src="../js/surveys.js"></script>
 
 </body>
 </html>
