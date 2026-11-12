@@ -19,10 +19,10 @@ document.addEventListener("DOMContentLoaded", function () {
     controls.className = "survey-controls";
 
     controls.innerHTML = `
-        <button type="button" id="toggle-edit">
-            Turn Edit Mode On
+        <button type="button" id="toggle-edit" class="btn btn-light">
+            Edit Mode: OFF
         </button>
-        <button type="button" id="add-survey" hidden>
+        <button type="button" id="add-survey" class="btn btn-light" hidden>
             Add Survey
         </button>
         <span id="survey-status" role="status"></span>
@@ -37,6 +37,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const toggleButton = document.getElementById("toggle-edit");
     const addButton = document.getElementById("add-survey");
     const statusMessage = document.getElementById("survey-status");
+
+    if (!toggleButton || !addButton || !statusMessage) {
+        console.error("Survey controls could not be found.");
+        return;
+    }
+
+    function applySurveyButtonStyle(button, leftMargin) {
+        if (!button) return;
+        button.className = "btn btn-light";
+        button.style.marginLeft = leftMargin;
+        button.style.fontWeight = "700";
+        button.style.borderRadius = "999px";
+        button.style.borderWidth = "2px";
+    }
+
+    applySurveyButtonStyle(toggleButton, "15px");
+    applySurveyButtonStyle(addButton, "10px");
 
     // Retrieve surveys from Google Sheets
     async function loadSurveys() {
@@ -309,10 +326,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
         editMode = !editMode;
 
-        toggleButton.textContent = editMode
-            ? "Turn Edit Mode Off"
-            : "Turn Edit Mode On";
+        if (editMode) {
+            toggleButton.textContent = "Edit Mode: ON";
+            toggleButton.className = "btn btn-light";
+            toggleButton.style.backgroundColor = "#ffc107";
+            toggleButton.style.color = "#000";
+            toggleButton.style.borderColor = "#ffc107";
+        } else {
+            toggleButton.textContent = "Edit Mode: OFF";
+            toggleButton.className = "btn btn-light";
+            toggleButton.style.backgroundColor = "";
+            toggleButton.style.color = "";
+            toggleButton.style.borderColor = "";
+        }
 
+        addButton.className = "btn btn-light";
         addButton.hidden = !editMode;
 
         renderSurveys();
