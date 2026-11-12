@@ -115,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
         sortedSurveys.forEach(function (survey) {
 
             const listItem = document.createElement("li");
+            listItem.className = "survey-item";
 
             if (editMode) {
                 listItem.appendChild(createEditForm(survey));
@@ -167,14 +168,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const container = document.createElement("div");
         container.className = "survey-editor";
 
+        function createField(labelText, control) {
+            const label = document.createElement("label");
+            label.className = "survey-editor-field";
+            label.style.display = "grid";
+
+            const caption = document.createElement("span");
+            caption.className = "survey-editor-label";
+            caption.textContent = labelText;
+
+            label.appendChild(caption);
+            label.appendChild(control);
+
+            return label;
+        }
+
         const titleInput = document.createElement("input");
         titleInput.type = "text";
         titleInput.placeholder = "Survey title";
         titleInput.value = survey.title;
 
-        const urlInput = document.createElement("input");
-        urlInput.type = "url";
-        urlInput.placeholder = "Survey URL";
+        const urlInput = document.createElement("textarea");
+        urlInput.rows = 2;
+        urlInput.placeholder = "https://example.com";
         urlInput.value = survey.url;
 
         const sectionSelect = document.createElement("select");
@@ -186,17 +202,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         sectionSelect.value = survey.section;
 
-        const noteInput = document.createElement("input");
-        noteInput.type = "text";
-        noteInput.placeholder = "Survey description";
+        const noteInput = document.createElement("textarea");
+        noteInput.rows = 4;
+        noteInput.placeholder = "Add a short description";
         noteInput.value = survey.note;
 
         const saveButton = document.createElement("button");
         saveButton.type = "button";
+        saveButton.className = "btn btn-light survey-save";
         saveButton.textContent = "Save";
 
         const deleteButton = document.createElement("button");
         deleteButton.type = "button";
+        deleteButton.className = "btn survey-delete";
         deleteButton.textContent = "Delete";
 
         saveButton.addEventListener("click", async function () {
@@ -249,12 +267,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
-        container.appendChild(titleInput);
-        container.appendChild(urlInput);
-        container.appendChild(sectionSelect);
-        container.appendChild(noteInput);
-        container.appendChild(saveButton);
-        container.appendChild(deleteButton);
+        const fields = document.createElement("div");
+        fields.className = "survey-editor-fields";
+        fields.style.display = "flex";
+        fields.style.flexDirection = "column";
+        fields.appendChild(createField("Survey title", titleInput));
+        fields.appendChild(createField("Survey URL", urlInput));
+        fields.appendChild(createField("Section", sectionSelect));
+        fields.appendChild(createField("Description", noteInput));
+
+        const actions = document.createElement("div");
+        actions.className = "survey-editor-actions";
+        actions.appendChild(saveButton);
+        actions.appendChild(deleteButton);
+
+        container.appendChild(fields);
+        container.appendChild(actions);
 
         return container;
     }
