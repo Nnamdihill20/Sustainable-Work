@@ -11,7 +11,7 @@
  */
 
 var CONTACT_API_URL =
-    "https://script.google.com/macros/s/AKfycbxXWepgx7V36_813pDWuXotL_iN09QpBqdroovIylZ4msOhwJbQHkeRgWCBI-pjvhSTtg/exec?sheet=Contact";
+    "https://script.google.com/macros/s/AKfycby6vSWPWTubpRtfYicgx1xst5SDqqHh5z-EQfUP3rEeJxemsARszk7t0IAivt_aYCsj3Q/exec?sheet=Contact";
 
 var contactSettings = {};
 var contactPeople = [];
