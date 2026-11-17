@@ -35,6 +35,12 @@ body{
 	color: var(--forest);
 	line-height: 1.6;
 	font-size: 1.0625rem;
+	background-image: url("../assets/bg-contours.png");
+	background-size: cover;
+	background-position: center;
+	background-attachment: fixed;
+
+
 }
 
 h1, h2, h3{
