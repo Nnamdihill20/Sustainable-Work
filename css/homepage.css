@@ -49,9 +49,18 @@ img{ display: block; max-width: 100%; }
 
 a{ color: var(--rust-deep); }
 
-li{
+ul li{
+	margin-bottom: 10px;
+}
+
+ol li{
 	margin-bottom: 30px;
 	font-size: 1.1rem;
+}
+
+/* makes numbered list in second half have #) format */
+ol li::marker{
+	content: counter(list-item) ") ";
 }
 
 :focus-visible{
@@ -414,12 +423,14 @@ li{
 }
 
 #section-img-container{
-	width: 40%;
-	height: auto;
+	height: 70%;
+	width: 55%;
 	border: 4px solid #DDA15E;
 }
 
 #section-img-container img{
+	width: 100%;
+	height: 100%;
 	object-fit: fill;
 }
 
