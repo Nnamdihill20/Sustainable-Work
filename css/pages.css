@@ -1,6 +1,8 @@
 /* Sustainable Work Lab: styles for the inner pages.
    Load AFTER homepage.css, which defines the palette variables, nav, footer, buttons and chips. */
 
+[hidden]{ display: none !important; }
+
 .page-head{
 	padding: 44px 0 26px;
 	border-bottom: 2px dashed var(--tan);
@@ -195,7 +197,8 @@
 	border-radius: 14px;
 	overflow: hidden;
 }
-.article .media-ph{ height: 180px; border-bottom: 3px dotted var(--forest); }
+.article .media-ph{ height: 180px; overflow: hidden; border-bottom: 3px dotted var(--forest); }
+.article .media-ph img{ width: 100%; height: 100%; object-fit: cover; }
 .article-body{ padding: 18px 20px 22px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .article-body h3{ font-size: 1.25rem; }
 .article-body .where{ color: var(--muted); }
